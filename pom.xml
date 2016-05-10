@@ -40,6 +40,17 @@
         <tag>HEAD</tag>
     </scm>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.wso2.charon</groupId>
+                <artifactId>org.wso2.charon.core</artifactId>
+                <version>${charon.wso2.version.identity}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
     <repositories>
         <repository>
             <id>wso2-nexus</id>
@@ -118,6 +129,12 @@
         <module>components/org.wso2.carbon.identity.provisioning.connector.scim</module>
         <module>features/org.wso2.carbon.identity.provisioning.connector.scim.server.feature</module>
     </modules>
+
+    <properties>
+        <charon.wso2.version.identity>2.0.5</charon.wso2.version.identity>
+        <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
+        <scim.common.version>5.0.9-SNAPSHOT</scim.common.version>
+    </properties>
 
 </project>
 
