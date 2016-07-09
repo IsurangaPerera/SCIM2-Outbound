@@ -137,7 +137,7 @@
     </modules>
 
     <properties>
-        <charon.wso2.version.identity>2.0.5</charon.wso2.version.identity>
+        <charon.wso2.version.identity>2.0.6</charon.wso2.version.identity>
         <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
         <inbound.provisioning.scim.version>5.1.0</inbound.provisioning.scim.version>
     </properties>
