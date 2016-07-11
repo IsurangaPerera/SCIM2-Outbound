@@ -128,18 +128,18 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.common.model;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.import.version.range}",
                             org.wso2.carbon.identity.provisioning;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.import.version.range}",
                             org.wso2.carbon.identity.scim.common.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${identity.inbound.provisioning.scim.import.version.range}",
                             org.wso2.charon.core.config; version="${charon.core.imp.pkg.version.range}",
                             org.wso2.charon.core.objects; version="${charon.core.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.connector.scim.internal,
                             org.wso2.carbon.identity.provisioning.connector.scim.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${identity.outbound.provisioning.scim.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>
