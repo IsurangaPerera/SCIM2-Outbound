@@ -261,8 +261,8 @@
         <identity.framework.version>5.2.0</identity.framework.version>
         <carbon.identity.framework.import.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.import.version.range>
 
-        <identity.inbound.provisioning.scim.version>[5.0.0, 6.0.0)</identity.inbound.provisioning.scim.version>
-        <identity.inbound.provisioning.scim.import.version.range>5.1.1</identity.inbound.provisioning.scim.import.version.range>
+        <identity.inbound.provisioning.scim.version>5.1.1</identity.inbound.provisioning.scim.version>
+        <identity.inbound.provisioning.scim.import.version.range>[5.0.0, 6.0.0)</identity.inbound.provisioning.scim.import.version.range>
         <identity.outbound.provisioning.scim.export.version>${project.version}</identity.outbound.provisioning.scim.export.version>
 
         <!-- Carbon kernel version -->
