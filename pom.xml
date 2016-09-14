@@ -24,7 +24,7 @@
         <version>1</version>
     </parent>
 
-    <groupId>org.wso2.carbon.identity</groupId>
+    <groupId>org.wso2.carbon.identity.outbound.provisioning.scim</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-outbound-provisioning-scim</artifactId>
     <version>5.1.2-SNAPSHOT</version>
@@ -45,22 +45,22 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.inbound.provisioning.scim</groupId>
                 <artifactId>org.wso2.carbon.identity.scim.common</artifactId>
                 <version>${identity.inbound.provisioning.scim.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.core</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.provisioning</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -258,10 +258,10 @@
     <properties>
         <!--Carbon framework version-->
         <carbon.identity.framework.import.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.import.version.range>
-        <identity.framework.version>5.2.0</identity.framework.version>
+        <identity.framework.version>5.5.0-SNAPSHOT</identity.framework.version>
         <carbon.identity.framework.import.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.import.version.range>
 
-        <identity.inbound.provisioning.scim.version>5.1.0</identity.inbound.provisioning.scim.version>
+        <identity.inbound.provisioning.scim.version>5.1.3-SNAPSHOT</identity.inbound.provisioning.scim.version>
         <identity.inbound.provisioning.scim.import.version.range>[5.0.0, 6.0.0)</identity.inbound.provisioning.scim.import.version.range>
         <identity.outbound.provisioning.scim.export.version>${project.version}</identity.outbound.provisioning.scim.export.version>
 
