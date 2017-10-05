@@ -135,7 +135,8 @@
                             version="${identity.inbound.provisioning.scim.import.version.range}",
                             org.wso2.charon.core.config; version="${charon.core.imp.pkg.version.range}",
                             org.wso2.charon.core.objects; version="${charon.core.imp.pkg.version.range}",
-                            org.wso2.charon.core.*; version="${charon.core.imp.pkg.version.range}",
+                            org.wso2.charon.core.exceptions; version="${charon.core.imp.pkg.version.range}",
+                            org.wso2.charon.core.schema; version="${charon.core.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.connector.scim.internal,

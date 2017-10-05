@@ -187,6 +187,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                     user = new User();
                 }
 
+                user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
                 user.setUserName(userName);
                 setUserPassword(user, userEntity);
 
@@ -229,6 +230,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
 
+            user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
             setUserPassword(user, userEntity);
 
@@ -271,6 +273,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             int httpMethod = SCIMConstants.DELETE;
             User user = null;
             user = new User();
+            user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
             ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, user,
                     httpMethod, null);
@@ -298,6 +301,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             int httpMethod = SCIMConstants.POST;
             Group group = null;
             group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             List<String> userList = getUserNames(groupEntity.getAttributes());
@@ -339,6 +343,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             Group group = null;
 
             group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, group,
@@ -366,6 +371,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
             int httpMethod = SCIMConstants.PUT;
             Group group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             List<String> userList = getUserNames(groupEntity.getAttributes());
@@ -454,7 +460,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
         outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null,
-                false), Arrays.asList(new String[]{groupName}));
+                false), Arrays.asList(groupName));
         if (newGroup) {
             outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null,
                     false), Arrays.asList(userList));
