@@ -23,8 +23,16 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.provisioning.*;
+import org.wso2.carbon.identity.provisioning.AbstractOutboundProvisioningConnector;
+import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
+import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
+import org.wso2.carbon.identity.provisioning.ProvisionedIdentifier;
+import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
+import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
+import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
+import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
 import org.wso2.carbon.identity.scim.common.impl.ProvisioningClient;
 import org.wso2.carbon.identity.scim.common.utils.AttributeMapper;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
@@ -36,6 +44,7 @@ import org.wso2.charon.core.objects.Group;
 import org.wso2.charon.core.objects.User;
 import org.wso2.charon.core.schema.SCIMConstants;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -142,29 +151,54 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                 userName = userNames.get(0);
             }
 
-            int httpMethod = SCIMConstants.POST;
-            User user = null;
+            List<String> newGroupList = userEntity.getAttributes().get(ClaimMapping.build
+                    (IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI, null, null, false));
+            List<String> deletedGroupList = userEntity.getAttributes().get(ClaimMapping.build
+                    (IdentityProvisioningConstants.DELETED_GROUP_CLAIM_URI, null, null, false));
 
-            // get single-valued claims
-            Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
+            if ((CollectionUtils.isNotEmpty(newGroupList)) || (CollectionUtils.isNotEmpty(deletedGroupList))) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Groups of user : " + userName + " are updated. Initiating group update calls");
+                }
 
-            // if user created through management console, claim values are not present.
-            if (MapUtils.isNotEmpty(singleValued)) {
-                user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
-                        SCIMConstants.USER_INT);
+                if (newGroupList != null) {
+                    for (String newGroup : newGroupList) {
+                        updateGroupsOfUser(userEntity, newGroup, true);
+                    }
+                }
+
+                if (deletedGroupList != null) {
+                    for (String deletedGroup : deletedGroupList) {
+                        updateGroupsOfUser(userEntity, deletedGroup, false);
+                    }
+                }
             } else {
-                user = new User();
-            }
+                int httpMethod = SCIMConstants.POST;
+                User user = null;
 
-            user.setUserName(userName);
-            setUserPassword(user, userEntity);
+                // get single-valued claims
+                Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
 
-            ProvisioningClient scimProvisioningClient = new ProvisioningClient(scimProvider, user,
-                    httpMethod, null);
-            if (ProvisioningOperation.PUT.equals(provisioningOperation)) {
-                scimProvisioningClient.provisionUpdateUser();
-            } else if (ProvisioningOperation.PATCH.equals(provisioningOperation)) {
-                scimProvisioningClient.provisionPatchUser();
+                // if user created through management console, claim values are not present.
+                if (MapUtils.isNotEmpty(singleValued)) {
+                    user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued, SCIMConstants
+                            .USER_INT);
+                } else {
+                    user = new User();
+                }
+
+                user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
+                user.setUserName(userName);
+                setUserPassword(user, userEntity);
+
+                ProvisioningClient scimProvisioningClient = new ProvisioningClient(scimProvider, user, httpMethod,
+                        null);
+
+                if (ProvisioningOperation.PUT.equals(provisioningOperation)) {
+                    scimProvisioningClient.provisionUpdateUser();
+                } else if (ProvisioningOperation.PATCH.equals(provisioningOperation)) {
+                    scimProvisioningClient.provisionPatchUser();
+                }
             }
         } catch (Exception e) {
             throw new IdentityProvisioningException("Error while creating the user", e);
@@ -196,12 +230,26 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
 
+            user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
             setUserPassword(user, userEntity);
 
             ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, user,
                     httpMethod, null);
             scimProvsioningClient.provisionCreateUser();
+
+            List<String> newGroupList = userEntity.getAttributes().get(ClaimMapping.build
+                    (IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false));
+
+            if (CollectionUtils.isNotEmpty(newGroupList)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User : " + userName + " is assigned to groups. Initiating group update calls.");
+                }
+
+                for (String newGroup : newGroupList) {
+                    updateGroupsOfUser(userEntity, newGroup, true);
+                }
+            }
 
         } catch (Exception e) {
             throw new IdentityProvisioningException("Error while creating the user", e);
@@ -225,6 +273,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             int httpMethod = SCIMConstants.DELETE;
             User user = null;
             user = new User();
+            user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
             ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, user,
                     httpMethod, null);
@@ -252,6 +301,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             int httpMethod = SCIMConstants.POST;
             Group group = null;
             group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             List<String> userList = getUserNames(groupEntity.getAttributes());
@@ -293,6 +343,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
             Group group = null;
 
             group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, group,
@@ -320,10 +371,10 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
             int httpMethod = SCIMConstants.PUT;
             Group group = new Group();
+            group.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             group.setDisplayName(groupName);
 
             List<String> userList = getUserNames(groupEntity.getAttributes());
-
             if (CollectionUtils.isNotEmpty(userList)) {
                 for (Iterator<String> iterator = userList.iterator(); iterator.hasNext(); ) {
                     String userName = iterator.next();
@@ -332,8 +383,20 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                     group.setMember(members);
                 }
             }
-            String oldGroupName = ProvisioningUtil.getAttributeValue(groupEntity,
-                                                                IdentityProvisioningConstants.OLD_GROUP_NAME_CLAIM_URI);
+
+            List<String> deletedUserList = getDeletedUserNames(groupEntity.getAttributes());
+            if (CollectionUtils.isNotEmpty(deletedUserList)) {
+                for (String deletedUser : deletedUserList) {
+                    Map<String, Object> member = new HashMap<>();
+                    member.put(SCIMConstants.CommonSchemaConstants.DISPLAY, deletedUser);
+                    member.put(SCIMConstants.CommonSchemaConstants.OPERATION, SCIMConstants.CommonSchemaConstants
+                            .OPERATION_DELETE);
+                    group.setMember(member);
+                }
+            }
+
+            String oldGroupName = ProvisioningUtil.getAttributeValue(groupEntity, IdentityProvisioningConstants
+                    .OLD_GROUP_NAME_CLAIM_URI);
             ProvisioningClient scimProvsioningClient = null;
             if (StringUtils.isEmpty(oldGroupName)) {
                 scimProvsioningClient = new ProvisioningClient(scimProvider, group, httpMethod, null);
@@ -390,4 +453,30 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
         }
     }
 
+    private void updateGroupsOfUser(ProvisioningEntity userEntity, String groupName, boolean newGroup) throws
+            IdentityProvisioningException {
+
+        String[] userList = {userEntity.getEntityName()};
+
+        Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
+        outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null,
+                false), Arrays.asList(groupName));
+        if (newGroup) {
+            outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null,
+                    false), Arrays.asList(userList));
+        } else {
+            outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null,
+                    null, false), Arrays.asList(userList));
+        }
+
+        ProvisioningEntity provisioningEntity = new ProvisioningEntity(ProvisioningEntityType.GROUP, groupName,
+                ProvisioningOperation.PATCH, outboundAttributes);
+
+        updateGroup(provisioningEntity);
+    }
+
+    private List<String> getDeletedUserNames(Map<ClaimMapping, List<String>> attributeMap) {
+        return ProvisioningUtil.getClaimValues(attributeMap, IdentityProvisioningConstants.DELETED_USER_CLAIM_URI,
+                this.getUserStoreDomainName());
+    }
 }
