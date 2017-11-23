@@ -115,16 +115,22 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                 }
 
             } else if (provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP) {
-                if (provisioningEntity.getOperation() == ProvisioningOperation.DELETE) {
-                    deleteGroup(provisioningEntity);
-                } else if (provisioningEntity.getOperation() == ProvisioningOperation.POST) {
-                    createGroup(provisioningEntity);
-                } else if (provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
-                    updateGroup(provisioningEntity);
-                } else if (provisioningEntity.getOperation() == ProvisioningOperation.PATCH) {
-                    updateGroup(provisioningEntity);
-                }else {
-                    log.warn("Unsupported provisioning operation.");
+                if (StringUtils.isNotBlank(scimProvider.getProperties().get(SCIMConfigConstants
+                        .ELEMENT_NAME_GROUP_ENDPOINT))) {
+                    if (provisioningEntity.getOperation() == ProvisioningOperation.DELETE) {
+                        deleteGroup(provisioningEntity);
+                    } else if (provisioningEntity.getOperation() == ProvisioningOperation.POST) {
+                        createGroup(provisioningEntity);
+                    } else if (provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
+                        updateGroup(provisioningEntity);
+                    } else if (provisioningEntity.getOperation() == ProvisioningOperation.PATCH) {
+                        updateGroup(provisioningEntity);
+                    } else {
+                        log.warn("Unsupported provisioning operation.");
+                    }
+                } else {
+                    log.info("SCIM group endpoint is not configured in Identity Provider configurations. Skip " +
+                            "performing " + provisioningEntity.getOperation() + " for outbound group resource.");
                 }
             } else {
                 log.warn("Unsupported provisioning entity.");
@@ -158,18 +164,29 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
             if ((CollectionUtils.isNotEmpty(newGroupList)) || (CollectionUtils.isNotEmpty(deletedGroupList))) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Groups of user : " + userName + " are updated. Initiating group update calls");
+                    log.debug("Groups of user : " + userName + " are updated. Groups assigned: " + newGroupList + ". " +
+                            "" + "Groups unassigned: " + deletedGroupList);
                 }
 
-                if (newGroupList != null) {
-                    for (String newGroup : newGroupList) {
-                        updateGroupsOfUser(userEntity, newGroup, true);
+                if (StringUtils.isNotBlank(scimProvider.getProperties().get(SCIMConfigConstants
+                        .ELEMENT_NAME_GROUP_ENDPOINT))) {
+
+                    if (newGroupList != null) {
+                        for (String newGroup : newGroupList) {
+                            updateGroupsOfUser(userEntity, newGroup, true);
+                        }
                     }
-                }
 
-                if (deletedGroupList != null) {
-                    for (String deletedGroup : deletedGroupList) {
-                        updateGroupsOfUser(userEntity, deletedGroup, false);
+                    if (deletedGroupList != null) {
+                        for (String deletedGroup : deletedGroupList) {
+                            updateGroupsOfUser(userEntity, deletedGroup, false);
+                        }
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("SCIM group endpoint is not configured in Identity Provider configurations. Skip "
+                                + "initiating group updates for user: " + userName + " to groups assigned: " +
+                                newGroupList + " and to groups unassigned: " + deletedGroupList);
                     }
                 }
             } else {
@@ -243,11 +260,19 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
             if (CollectionUtils.isNotEmpty(newGroupList)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("User : " + userName + " is assigned to groups. Initiating group update calls.");
+                    log.debug("User : " + userName + " is assigned to groups. Groups assigned: " + newGroupList);
                 }
 
-                for (String newGroup : newGroupList) {
-                    updateGroupsOfUser(userEntity, newGroup, true);
+                if (StringUtils.isNotBlank(scimProvider.getProperties().get(SCIMConfigConstants
+                        .ELEMENT_NAME_GROUP_ENDPOINT))) {
+                    for (String newGroup : newGroupList) {
+                        updateGroupsOfUser(userEntity, newGroup, true);
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("SCIM group endpoint is not configured in Identity Provider configurations. Skip "
+                                + "initiating group updates for user: " + userName + " to groups: " + newGroupList);
+                    }
                 }
             }
 
