@@ -207,7 +207,6 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
 
                 user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
                 user.setUserName(userName);
-                setUserPassword(user, userEntity);
 
                 ProvisioningClient scimProvisioningClient = new ProvisioningClient(scimProvider, user, httpMethod,
                         null);
