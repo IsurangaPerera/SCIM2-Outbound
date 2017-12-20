@@ -107,7 +107,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                 } else if (provisioningEntity.getOperation() == ProvisioningOperation.POST) {
                     createUser(provisioningEntity);
                 } else if (provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
-                    updateUser(provisioningEntity, ProvisioningOperation.PUT);
+                    updateUser(provisioningEntity, ProvisioningOperation.PATCH);
                 } else if (provisioningEntity.getOperation() == ProvisioningOperation.PATCH) {
                     updateUser(provisioningEntity, ProvisioningOperation.PATCH);
                 } else {
@@ -193,6 +193,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                 int httpMethod = SCIMConstants.POST;
                 User user = null;
 
+                filterUserMetaData(userEntity.getAttributes());
                 // get single-valued claims
                 Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
 
@@ -503,5 +504,19 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
     private List<String> getDeletedUserNames(Map<ClaimMapping, List<String>> attributeMap) {
         return ProvisioningUtil.getClaimValues(attributeMap, IdentityProvisioningConstants.DELETED_USER_CLAIM_URI,
                 this.getUserStoreDomainName());
+    }
+
+    private void filterUserMetaData(Map<ClaimMapping, List<String>> attributes) {
+
+        for (Iterator<Map.Entry<ClaimMapping, List<String>>> iterator = attributes.entrySet().iterator();
+             iterator.hasNext(); ) {
+            Map.Entry<ClaimMapping, List<String>> entry = iterator.next();
+            if (SCIMConstants.META_CREATED_URI.equals(entry.getKey().getLocalClaim().getClaimUri()) ||
+                    SCIMConstants.ID_URI.equals(entry.getKey().getLocalClaim().getClaimUri()) ||
+                    SCIMConstants.META_LOCATION_URI.equals(entry.getKey().getLocalClaim().getClaimUri()) ||
+                    SCIMConstants.META_LAST_MODIFIED_URI.equals(entry.getKey().getLocalClaim().getClaimUri())) {
+                iterator.remove();
+            }
+        }
     }
 }
