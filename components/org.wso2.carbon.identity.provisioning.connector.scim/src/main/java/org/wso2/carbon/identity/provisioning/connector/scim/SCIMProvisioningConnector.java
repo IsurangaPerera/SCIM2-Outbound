@@ -56,6 +56,7 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
     private static Log log = LogFactory.getLog(SCIMProvisioningConnector.class);
     private SCIMProvider scimProvider;
     private String userStoreDomainName;
+    private String scimVersion;
 
     @Override
     public void init(Property[] provisioningProperties) throws IdentityProvisioningException {
@@ -76,10 +77,12 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
                 } else if (SCIMProvisioningConnectorConstants.SCIM_USERSTORE_DOMAIN.equals(property.getName())) {
                     userStoreDomainName = property.getValue() != null ? property.getValue()
                             : property.getDefaultValue();
-                }else if (SCIMProvisioningConnectorConstants.SCIM_ENABLE_PASSWORD_PROVISIONING.equals(property.getName())){
+                } else if (SCIMProvisioningConnectorConstants.SCIM_ENABLE_PASSWORD_PROVISIONING.equals(property.getName())){
                     populateSCIMProvider(property, SCIMProvisioningConnectorConstants.SCIM_ENABLE_PASSWORD_PROVISIONING);
-                }else if (SCIMProvisioningConnectorConstants.SCIM_DEFAULT_PASSWORD.equals(property.getName())){
+                } else if (SCIMProvisioningConnectorConstants.SCIM_DEFAULT_PASSWORD.equals(property.getName())){
                     populateSCIMProvider(property, SCIMProvisioningConnectorConstants.SCIM_DEFAULT_PASSWORD);
+                } else if (SCIMProvisioningConnectorConstants.SCIM_VERSION.equals(property.getName())) {
+                    scimVersion = property.getValue();
                 }
 
                 if (IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED.equals(property
@@ -287,23 +290,11 @@ public class SCIMProvisioningConnector extends AbstractOutboundProvisioningConne
      */
     private void deleteUser(ProvisioningEntity userEntity) throws IdentityProvisioningException {
 
+        ProvisioningManager provisioningManager = new ProvisioningManager(
+                SCIMProvisioningConnectorConstants.SCIM_VERSION1, userStoreDomainName);
+
         try {
-            List<String> userNames = getUserNames(userEntity.getAttributes());
-            String userName = null;
-
-            if (CollectionUtils.isNotEmpty(userNames)) {
-                userName = userNames.get(0);
-            }
-
-            int httpMethod = SCIMConstants.DELETE;
-            User user = null;
-            user = new User();
-            user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
-            user.setUserName(userName);
-            ProvisioningClient scimProvsioningClient = new ProvisioningClient(scimProvider, user,
-                    httpMethod, null);
-            scimProvsioningClient.provisionDeleteUser();
-
+            provisioningManager.deleteUser(userEntity, scimProvider);
         } catch (Exception e) {
             throw new IdentityProvisioningException("Error while deleting user.", e);
         }
